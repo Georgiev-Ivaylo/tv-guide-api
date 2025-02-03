@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ChannelResource extends JsonResource
+class ClientResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,11 +17,15 @@ class ChannelResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'description' => $this->description,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'name' => $this->lastname . " " . $this->firstname,
+            'username' => $this->username,
+            'email' => $this->email,
+            '2fa' => $this->{'2fa'},
+            'email_verified_at' => Carbon::parse($this->email_verified_at)->toDateTimeString(),
             'created_at' => Carbon::parse($this->created_at)->toDateTimeString(),
             'updated_at' => Carbon::parse($this->updated_at)->toDateTimeString(),
-            'programs' => ProgramResource::collection($this->whenLoaded('programs')),
         ];
     }
 }

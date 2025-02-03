@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\GetChannelsRequest;
+use App\Http\Requests\Channel\GetChannelsRequest;
 use App\Http\Resources\ChannelResource;
 use App\Models\Channel;
 use Carbon\Carbon;
@@ -23,7 +23,7 @@ class ChannelController extends Controller
                 ->groupBy('channels.id');
 
             if ($request->input('query')) {
-                $channels->where('p.title', 'LIKE', '%' . $request->input('query') . '%');
+                $channels->where('p.title', 'ILIKE', '%' . $request->input('query') . '%');
             }
 
             if ($request->input('date')) {

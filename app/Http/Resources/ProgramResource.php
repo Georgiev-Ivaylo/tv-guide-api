@@ -17,13 +17,13 @@ class ProgramResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            // 'channel' => $this->channel,
             'title' => $this->title,
             'type' => $this->type,
             'start_datetime' => Carbon::parse($this->start_datetime)->toDateTimeString(),
             'end_datetime' => Carbon::parse($this->end_datetime)->toDateTimeString(),
             'created_at' => Carbon::parse($this->created_at)->toDateTimeString(),
             'updated_at' => Carbon::parse($this->updated_at)->toDateTimeString(),
+            'channel' => new ChannelResource($this->whenLoaded('channel')),
         ];
     }
 }

@@ -1,19 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Program;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class GetChannelsRequest extends FormRequest
+class GetProgramsRequest extends FormRequest
 {
-    // /**
-    //  * Determine if the user is authorized to make this request.
-    //  */
-    // public function authorize(User $user): bool
-    // {
-    //     return true;
-    // }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -26,6 +18,7 @@ class GetChannelsRequest extends FormRequest
             'get_pages' => ['boolean'],
             'page_size' => ['integer'],
             'page' => ['integer'],
+            'channel_id' => ['integer'],
             'date' => ['date_format:Y-m-d'],
         ];
     }

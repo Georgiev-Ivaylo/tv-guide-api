@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Client;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class LoginRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class LoginRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return !Auth::guard('client')->check();
     }
 
     /**
@@ -23,7 +24,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email',],
-            'password' => ['required', 'min:6']
+            'password' => ['required', 'min:6'],
         ];
     }
 }
