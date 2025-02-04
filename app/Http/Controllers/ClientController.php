@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientVerification;
+use App\Http\Requests\Client\ClientVerifyRequest;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Http\Requests\Client\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
+use App\Models\ClientEmailVerification;
 use App\Utils\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Mime\Message;
 
 class ClientController extends Controller
 {
@@ -52,6 +58,8 @@ class ClientController extends Controller
 
         $client->save();
 
+        ClientVerification::dispatch($client);
+
         return ApiResponse::success(['redirect' => '/login'], [], __('client.created'));
     }
 
@@ -84,6 +92,7 @@ class ClientController extends Controller
     public function update(UpdateClientRequest $request, Client $client)
     {
         $errors = [];
+        $needsEmailVerification = false;
         $client->firstname = $request->firstname ?? $client->firstname;
         $client->lastname = $request->lastname ?? $client->lastname;
         $client->{'2fa'} = $request->{'2fa'} ?? $client->{'2fa'};
@@ -95,8 +104,11 @@ class ClientController extends Controller
         if ($request->email && $request->email !== $client->email && $this->isClientExistsByEmail($request->email)) {
             $errors['email'] = [__('client.validation.unique_email')];
         }
+        if ($request->email && $request->email !== $client->email) {
+            $needsEmailVerification = true;
+        }
         $client->email = $request->email ?? $client->email;
-        if (!Hash::check($request->old_password, $client->password)) {
+        if ($request->password && !Hash::check($request->old_password, $client->password)) {
             $errors['old_password'] = [__('client.validation.old_password')];
         }
         $client->password = $request->password ?? $client->password;
@@ -105,8 +117,23 @@ class ClientController extends Controller
         }
 
         $client->save();
+        if ($needsEmailVerification) {
+            ClientVerification::dispatch($client);
+        }
 
         return ApiResponse::success(['redirect' => '/account'], [], __('client.changed'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function resetVerification(UpdateClientRequest $request, Client $client)
+    {
+        Mail::raw('Test email', function ($message) {
+            $message->to('test@example.com')->subject('Test Email');
+        });
+
+        return ApiResponse::success(['redirect' => '/login'], [], __('client.reset_verification'));
     }
 
     /**
@@ -122,5 +149,25 @@ class ClientController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return ApiResponse::success(['redirect' => '/'], [], __('client.logout'));
+    }
+
+    public function verify(ClientVerifyRequest $request)
+    {
+        $verificationRequest = ClientEmailVerification::where('token', $request->token)
+            ->where('email', $request->email)
+            ->where('is_used', false)
+            ->first();
+        if (!$verificationRequest) {
+            return ApiResponse::error(409, __('client.bad_verification'));
+        }
+
+        $verificationRequest->is_used = true;
+        $verificationRequest->save();
+
+        $date = now()->toDateTimeString();
+        Client::where('id', $verificationRequest->client_id)
+            ->update(['email_verified_at' => $date, 'updated_at' => $date]);
+
+        return ApiResponse::success(['redirect' => '/'], [], __('client.verified'));
     }
 }

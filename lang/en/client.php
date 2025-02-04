@@ -17,4 +17,7 @@ return [
         'old_password' => 'Incorrect password',
     ],
     'logout' => 'Session ended.',
+    'reset_verification' => 'We have sended new email for verification.',
+    'bad_verification' => 'The verification cannot be completed.',
+    'verified' => 'The verification is completed.',
 ];

@@ -5,6 +5,7 @@ use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\FormClientController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\TemplateController;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,28 +19,27 @@ Route::get('/', function (Request $request) {
 // Route::post('/login/user', [AuthController::class, 'user']);
 Route::post('/admin/login', [AuthController::class, 'user']);
 
+
 Route::apiResource('programs', ProgramController::class);
-Route::get('/admin/programs/form', [ProgramController::class, 'form']);
 
 Route::apiResource('channels', ChannelController::class);
+
 
 Route::prefix('admin')
     ->middleware(['auth:sanctum'])
     ->as('admin.')
     ->group(
         function () {
+            Route::apiResource('templates', TemplateController::class);
             Route::apiResource('programs', ProgramController::class);
+            Route::get('/programs/form', [ProgramController::class, 'form']);
         }
     );
 
 
-// Route::group(['admin'], [
-//     Route::apiResource('programs', ProgramController::class),
-// ])->middleware(['auth:sanctum', 'publish']);
-
-
 Route::post('/login', [AuthController::class, 'client']);
 Route::post('/clients', [ClientController::class, 'store']);
+Route::post('/verify', [ClientController::class, 'verify']);
 Route::get('/forms/client', [FormClientController::class, 'store']);
 Route::get('/forms/client/update', [FormClientController::class, 'update']);
 Route::group(['middleware' => 'auth:sanctum'], function () {
